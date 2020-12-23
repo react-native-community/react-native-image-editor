@@ -2,51 +2,41 @@
 
 buildscript {
     ext {
-        buildToolsVersion = "28.0.3"
+        buildToolsVersion = "29.0.2"
         minSdkVersion = 18
-        compileSdkVersion = 28
-        targetSdkVersion = 27
-        supportLibVersion = "28.0.0"
-        // e2e
-        ext.kotlinVersion = '1.3.0'
-
+        compileSdkVersion = 29
+        targetSdkVersion = 29
+        kotlinVersion = '1.4.20'
     }
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath("com.android.tools.build:gradle:3.5.3")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 }
 
 allprojects {
-    task downloadDependencies() {
-        description 'Download all dependencies to the Gradle cache'
-        doLast {
-            configurations.findAll().each { config ->
-                if (config.name.contains("minReactNative") && config.canBeResolved) {
-                print config.name
-                print '\n'
-                config.files
-                }
-            }
-        }
-    }
-    
     repositories {
         mavenLocal()
+        maven {
+            // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+            url("$rootDir/../node_modules/react-native/android")
+        }
+        maven {
+            // Android JSC is installed from npm
+            url("$rootDir/../node_modules/jsc-android/dist")
+        }
+        maven {
+            // All of Detox' artifacts are provided via the npm module
+            url "$rootDir/../../node_modules/detox/Detox-android"
+        }
         google()
         jcenter()
-        maven {
-            url "$rootDir/../../node_modules/react-native/android"
-        }
+        maven { url 'https://www.jitpack.io' }
     }
-}
-
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.7'
-    distributionUrl = distributionUrl.replace("bin", "all")
 }

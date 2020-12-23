@@ -20,10 +20,13 @@
     "url": "https://github.com/react-native-community/react-native-image-editor.git"
   },
   "scripts": {
-    "start": "node node_modules/react-native/local-cli/cli.js start",
-    "test:flow": "flow check",
-    "test:eslint": "eslint \"lib/**/*.js\" \"example/**/*.js\"",
+    "start": "yarn --cwd=example start",
+    "test:flow": "flow",
+    "test:eslint": "eslint lib/**/*.js example/**/*.js",
+    "example": "yarn --cwd example",
     "release": "release-it",
+    "bootstrap": "yarn && yarn --cwd=example && cd example/ios && pod install --silent",
+    "clean:packages":  "rimraf example/ios/Pods && rimraf example/node_modules && rimraf node_modules",
     "test:detox:android:test:debug": "detox test -c android.emu.debug",
     "test:detox:android:test:release": "detox test -c android.emu.release",
     "test:detox:android:build:debug": "detox build -c android.emu.debug",
@@ -34,27 +37,26 @@
     "test:detox:ios:build:debug": "detox build -c ios.sim.debug",
     "test:detox:ios:build:release": "detox build -c ios.sim.release",
     "test:detox:ios:bundle:release": "mkdir -p .tmp && react-native bundle --max-workers 4 --platform ios --dev false --entry-file example/index.js --bundle-output .tmp/ios-bundle.js",
-    "test:detox:clean": "rimraf example/android/build && rimraf example/android/app/build && rimraf example/android/.gradle && rimraf example/ios/build"
+    "test:detox:clean": "yarn example \"test:clean\""
   },
   "peerDependencies": {
-    "react": "^16.0",
-    "react-native": ">=0.57 <0.62"
+    "react": "16.13.1",
+    "react-native": "0.63.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0",
-    "@react-native-community/eslint-config": "^0.0.7",
-    "babel-core": "^7.0.0-bridge.0",
+    "@babel/core": "^7.8.4",
+    "@babel/runtime": "^7.8.4",
+    "@react-native-community/eslint-config": "^1.1.0",
     "babel-eslint": "9.0.0",
-    "babel-jest": "24.1.0",
+    "babel-jest": "24.9.0",
     "babel-plugin-module-resolver": "^3.1.3",
-    "detox": "^12.4.9",
+    "detox": "^17.14.1",
     "eslint": "^6.8.0",
-    "flow-bin": "0.86.0",
-    "jest": "24.1.0",
-    "metro-react-native-babel-preset": "0.51.1",
-    "react": "16.6.3",
-    "react-native": "0.58.4",
-    "react-test-renderer": "16.6.3",
+    "flow-bin": "^0.98.0",
+    "jest": "24.9.0",
+    "react": "16.13.1",
+    "react-native": "0.63.4",
+    "react-test-renderer": "16.13.1",
     "release-it": "^10.3.1"
   },
   "eslintConfig": {
@@ -84,21 +86,27 @@
       "/e2e/"
     ]
   },
+
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+
   "detox": {
     "test-runner": "jest",
     "runner-config": "example/e2e/config.json",
     "configurations": {
-      "ios.sim.debug": {
-        "binaryPath": "example/ios/build/Build/Products/Debug-iphonesimulator/ImageEditorExample.app",
-        "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -project example/ios/ImageEditorExample.xcodeproj -destination 'platform=iOS Simulator,name=iPhone X' -scheme ImageEditorExample -parallelizeTargets -configuration Debug -derivedDataPath example/ios/build  -UseModernBuildSystem=YES",
+      "ios.sim.debug": { 
+        "binaryPath": "example/ios/build/Build/Products/Debug-iphonesimulator/ReactNativeImageEditorExample.app",
+        "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace example/ios/ReactNativeImageEditorExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 11' -scheme ReactNativeImageEditorExample -parallelizeTargets -configuration Debug -derivedDataPath example/ios/build  -UseModernBuildSystem=YES",
         "type": "ios.simulator",
-        "name": "iPhone X"
+        "name": "iPhone 11"
       },
       "ios.sim.release": {
-        "binaryPath": "example/ios/build/Build/Products/Release-iphonesimulator/ImageEditorExample.app",
-        "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -project example/ios/ImageEditorExample.xcodeproj -destination 'platform=iOS Simulator,name=iPhone X' -scheme ImageEditorExample -parallelizeTargets -configuration Release -derivedDataPath example/ios/build  -UseModernBuildSystem=YES",
+        "binaryPath": "example/ios/build/Build/Products/Release-iphonesimulator/ReactNativeImageEditorExample.app",
+        "build": "export RCT_NO_LAUNCH_PACKAGER=true && xcodebuild -workspace example/ios/ReactNativeImageEditorExample.xcworkspace -destination 'platform=iOS Simulator,name=iPhone 11' -scheme ReactNativeImageEditorExample -parallelizeTargets -configuration Release -derivedDataPath example/ios/build  -UseModernBuildSystem=YES",
         "type": "ios.simulator",
-        "name": "iPhone X"
+        "name": "iPhone 11"
       },
       "android.emu.debug": {
         "binaryPath": "example/android/app/build/outputs/apk/debug/app-debug.apk",
@@ -113,9 +121,5 @@
         "name": "TestingAVD"
       }
     }
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org/"
   }
 }

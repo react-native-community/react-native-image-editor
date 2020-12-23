@@ -1,22 +1,58 @@
 version: 2.1
 
 orbs:
-  rn: react-native-community/react-native@1.1.0
+  rn: react-native-community/react-native@4.4.2
 
 jobs:
   checkout_code:
-    executor: rn/linux_js
+    executor: 
+      name: rn/linux_js
+      node_version: '10'
     steps:
       - checkout
       - persist_to_workspace:
           root: .
-          paths: .
-  analyse:
-    executor: rn/linux_js
+          paths: 
+            - .
+  install-dependencies:
+    executor: 
+      name: rn/linux_js
+      node_version: '10'
     steps:
       - attach_workspace:
           at: .
-      - rn/yarn_install
+      - restore_cache:
+          keys:
+            - dependencies-{{ .Environment.CACHE_VERSION }}-{{ checksum "package.json" }}
+            - dependencies-
+      - restore_cache:
+          keys:
+            - dependencies-example-{{ .Environment.CACHE_VERSION }}-{{ checksum "example/package.json" }}
+            - dependencies-example-
+      - run:
+          name: Install dependencies
+          command: |
+            yarn install --cwd example --frozen-lockfile
+            yarn install --frozen-lockfile
+      - save_cache:
+          key: dependencies-{{ .Environment.CACHE_VERSION }}-{{ checksum "package.json" }}
+          paths: 
+            - node_modules
+      - save_cache:
+          key: dependencies-example-{{ .Environment.CACHE_VERSION }}-{{ checksum "example/package.json" }}
+          paths: 
+            - example/node_modules
+      - persist_to_workspace:
+          root: .
+          paths: 
+            - .
+  analyse:
+    executor: 
+      name: rn/linux_js
+      node_version: '10'
+    steps:
+      - attach_workspace:
+          at: .
       - run:
           name: Lint JS Code (ESLint)
           command: yarn run test:eslint
@@ -38,9 +74,12 @@ workflows:
   test:
     jobs:
       - checkout_code
-      - analyse:
+      - install-dependencies:
           requires:
             - checkout_code
+      - analyse:
+          requires:
+            - install-dependencies
       - rn/android_build:
           name: build_android_debug
           project_path: "example/android"
@@ -59,12 +98,14 @@ workflows:
           requires:
             - build_android_release
       - rn/ios_build_and_test:
-          project_path: "example/ios/ImageEditorExample.xcodeproj"
+          project_type: workspace
+          project_path: "example/ios/ReactNativeImageEditorExample.xcworkspace"
           derived_data_path: "example/ios/build"
-          device: "iPhone X"
-          build_configuration: "Release"
-          scheme: "ImageEditorExample"
-          detox_configuration: "ios.sim.release"
+          pod_install_directory: "example/ios"
+          device: "iPhone 11"
+          build_configuration: "Debug"
+          scheme: "ReactNativeImageEditorExample"
+          detox_configuration: "ios.sim.debug"
           detox_loglevel: "trace"
           requires:
             - analyse
